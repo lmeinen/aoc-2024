@@ -30,7 +30,14 @@ def solve_puzzle(year, day):
                 expected = example.answers[0 if part == "a" else 1]
                 actual = str(solve(part, example.input_data))
                 if expected is not None and actual != expected:
-                    pretty_print(year, day, part, sample=(expected, actual))
+                    pretty_print(
+                        year,
+                        day,
+                        part,
+                        state="SAMPLE_FAILED",
+                        attempt=actual,
+                        sample=expected,
+                    )
                     return
 
             # Solve puzzle
@@ -56,10 +63,13 @@ def solve_puzzle(year, day):
                 year,
                 day,
                 part,
+                state="SUCCESS" if accepted else "REJECTED",
                 time=end - start,
-                accepted=accepted,
                 attempt=answer,
             )
+    else:
+        pretty_print(year, day, "a", state="MISSING")
+        pretty_print(year, day, "b", state="MISSING")
 
 
 def pretty_print(
@@ -67,33 +77,59 @@ def pretty_print(
     day: int,
     part: Literal["a", "b"],
     *,
+    state: Literal["MISSING", "SAMPLE_FAILED", "REJECTED", "SUCCESS"],
     time: float = 0,
-    accepted: bool = False,
     attempt: str | int | None = None,
-    sample: Tuple[str, str] = ("", ""),
+    sample: str = "",
 ):
     yeartxt = Text(str(year), style="white")
     daytxt = Text(str(day), style="white")
+    daytxt.align("right", 2)
     parttxt = Text(f"part {part}", style="white")
+    columns = [yeartxt, daytxt, parttxt]
 
-    if attempt is not None:
-        timetxt = Text(
-            f"{time:6.4f}s",
-            style="red" if time > 10 else "orange" if time > 1 else "green",
+    if state == "MISSING":
+        columns.append(
+            Text(
+                "❌ Missing implementation",
+                style="red",
+            )
         )
-        successtxt = Text(
-            ("✅" if accepted else "❌") + f" Answer: {attempt}",
-            style="green" if accepted else "red",
+    elif state == "SAMPLE_FAILED":
+        columns.append(
+            Text(
+                f"❌ Example failed" + f" - Expected: {sample[0]}; Actual: {sample[1]}",
+                style="red",
+            )
         )
-
-        print(Columns([yeartxt, daytxt, parttxt, timetxt, successtxt]))
+    elif state == "REJECTED":
+        columns.append(
+            Text(
+                f"{time:6.4f}s",
+                style="red" if time > 10 else "orange" if time > 1 else "green",
+            )
+        )
+        columns.append(
+            Text(
+                f"❌ Answer: {attempt}",
+                style="red",
+            )
+        )
     else:
-        failtxt = Text(
-            f"❌ Example failed" + f" - Expected: {sample[0]}; Actual: {sample[1]}",
-            style="red",
+        columns.append(
+            Text(
+                f"{time:6.4f}s",
+                style="red" if time > 10 else "orange" if time > 1 else "green",
+            )
+        )
+        columns.append(
+            Text(
+                f"✅ Answer: {attempt}",
+                style="green",
+            )
         )
 
-        print(Columns([yeartxt, daytxt, parttxt, failtxt]))
+    print(Columns(columns))
 
 
 def import_solution(
@@ -103,19 +139,16 @@ def import_solution(
     path = pathlib.Path(f"{year}/day_{day}.py").resolve()
 
     if not path.is_file():
-        print(f"❌ Solution file not found: {path}")
         return None
 
     spec = importlib.util.spec_from_file_location(path.stem, path)
     if spec is None:
-        print(f"❌ Could not create a module spec for {path}")
         return None
 
     module = importlib.util.module_from_spec(spec)
     try:
         spec.loader.exec_module(module)  # type: ignore[attr-defined]
     except Exception as e:
-        print(f"⚠️ Error while importing {path.name}: {e}")
         return None
 
     return getattr(module, "solve", None)
