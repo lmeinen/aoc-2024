@@ -106,7 +106,7 @@ def pretty_print(
         columns.append(
             Text(
                 f"{time:6.4f}s",
-                style="red" if time > 10 else "orange" if time > 1 else "green",
+                style="red" if time > 1 else "orange" if time > 0.5 else "green",
             )
         )
         columns.append(
@@ -119,7 +119,7 @@ def pretty_print(
         columns.append(
             Text(
                 f"{time:6.4f}s",
-                style="red" if time > 10 else "orange" if time > 1 else "green",
+                style="red" if time > 1 else "orange" if time > 0.5 else "green",
             )
         )
         columns.append(

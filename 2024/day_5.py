@@ -1,6 +1,6 @@
-from collections import defaultdict
 import re
-from typing import Dict, List, Literal, Set, Tuple
+from collections import defaultdict
+from typing import Dict, List, Literal, Set
 
 
 def solve(part: Literal["a", "b"], input: str) -> int:
