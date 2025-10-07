@@ -1,7 +1,9 @@
+import argparse
 import importlib.util
 import pathlib
+import sys
 import time
-from typing import Callable, Literal, Tuple
+from typing import Callable, Literal
 
 from aocd import submit
 from aocd.models import Puzzle
@@ -9,14 +11,17 @@ from rich import print
 from rich.columns import Columns
 from rich.text import Text
 
-# TODO: wrap in args
-years = [2024]
+p = argparse.ArgumentParser()
+p.add_argument(
+    "--days", nargs="+", type=int, default=list(range(1, 26))  # one or more values
+)  # 1‑25
+p.add_argument("--years", nargs="+", type=int, default=[2024])
 
 
-def run():
+def run(years: list[int], days: list[int]):
     # go through the list of years:
     for year in years:
-        for day in range(1, 26):
+        for day in days:
             solve_puzzle(year, day)
 
 
@@ -139,19 +144,32 @@ def import_solution(
     path = pathlib.Path(f"{year}/day_{day}.py").resolve()
 
     if not path.is_file():
+        print("file does not exist")
         return None
 
-    spec = importlib.util.spec_from_file_location(path.stem, path)
-    if spec is None:
-        return None
+    module_name = f"{year}.day_{day}"
+    if module_name in sys.modules:
+        module = sys.modules[module_name]
+    else:
+        spec = importlib.util.spec_from_file_location(module_name, path)
+        if spec is None or spec.loader is None:
+            print("spec failed")
+            return None
 
-    module = importlib.util.module_from_spec(spec)
-    try:
-        spec.loader.exec_module(module)  # type: ignore[attr-defined]
-    except Exception as e:
-        return None
+        module = importlib.util.module_from_spec(spec)
+        module.__package__ = f"{year}"
+
+        try:
+            spec.loader.exec_module(module)
+        except Exception as e:
+            print(f"module loading failed: {e}")
+            return None
+
+        # Register it so future calls hit the cache
+        sys.modules[module_name] = module
 
     return getattr(module, "solve", None)
 
 
-run()
+args = p.parse_args()
+run(args.years, args.days)

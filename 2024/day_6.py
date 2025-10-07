@@ -1,5 +1,7 @@
 from typing import Literal
 
+from util.algs import search
+
 type Sparse = list[list[int]]
 type Position = tuple[int, int]
 
@@ -23,18 +25,18 @@ class Grid:
             self.col_major[col].append(row)
 
     def add_obstacle(self, pos: Position):
-        self.row_major[pos[0]].insert(_search(self.row_major[pos[0]], pos[1]), pos[1])
-        self.col_major[pos[1]].insert(_search(self.col_major[pos[1]], pos[0]), pos[0])
+        self.row_major[pos[0]].insert(search(self.row_major[pos[0]], pos[1]), pos[1])
+        self.col_major[pos[1]].insert(search(self.col_major[pos[1]], pos[0]), pos[0])
 
     def remove_obstacle(self, pos: Position):
-        del self.row_major[pos[0]][_search(self.row_major[pos[0]], pos[1])]
-        del self.col_major[pos[1]][_search(self.col_major[pos[1]], pos[0])]
+        del self.row_major[pos[0]][search(self.row_major[pos[0]], pos[1])]
+        del self.col_major[pos[1]][search(self.col_major[pos[1]], pos[0])]
 
     def walk(self, start: Position, facing: int) -> tuple[Position, bool]:
         # left: 0, up: 1, right: 2, down: 3
         obstacles = self.majors[facing % 2][start[facing % 2]]
         positive_direction = facing // 2  # is 1 if right or down, 0 otherwise
-        obstacle_idx = _search(obstacles, start[(facing + 1) % 2]) + (
+        obstacle_idx = search(obstacles, start[(facing + 1) % 2]) + (
             positive_direction - 1
         )  # idx of next obstacle
         nxt = list(start)
@@ -133,19 +135,3 @@ def solve_b(grid: Grid, start: Position) -> int:
             grid.remove_obstacle(pos)
 
     return total
-
-
-def _search(lst: list[int], val: int) -> int:
-    """returns insertion index for val in non-empty list"""
-    l = 0
-    r = len(lst)
-    while l < r:
-        m = l + (r - l) // 2
-        if lst[m] < val:
-            l = m + 1
-        elif lst[m] > val:
-            r = m
-        else:
-            return m
-    assert l <= r
-    return l
