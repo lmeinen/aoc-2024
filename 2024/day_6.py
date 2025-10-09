@@ -2,8 +2,8 @@ from typing import Literal
 
 from util.algs import search
 
-type Sparse = list[list[int]]
-type Position = tuple[int, int]
+Sparse = list[list[int]]
+Position = tuple[int, int]
 
 
 class Grid:

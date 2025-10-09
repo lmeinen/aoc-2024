@@ -1,4 +1,7 @@
-def search(lst: list[int], val: int) -> int:
+from typing import Sequence
+
+
+def search(lst: Sequence[int], val: int) -> int:
     """returns insertion index for val in non-empty sorted list"""
     l = 0
     r = len(lst)
