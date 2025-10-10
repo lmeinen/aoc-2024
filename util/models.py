@@ -3,6 +3,20 @@ import functools
 import math
 
 
+class Size:
+    def __init__(self, rows, cols):
+        self._rows = rows
+        self._cols = cols
+
+    @property
+    def rows(self):
+        return self._rows
+
+    @property
+    def cols(self):
+        return self._cols
+
+
 @functools.total_ordering
 class Coordinate:
     def __init__(self, x, y):
@@ -16,17 +30,20 @@ class Coordinate:
     @property
     def y(self):
         return self._y
-    
+
     def normalize(self):
         d = math.gcd(self.x, self.y)
         return self // d
+
+    def in_range(self, size: Size) -> bool:
+        return 0 <= self.x < size.rows and 0 <= self.y < size.cols
 
     def __eq__(self, other):
         return self.x == other.x and self.y == other.y
 
     def __lt__(self, other):
         return self.x < other.x if self.x != other.x else self.y < other.y
-    
+
     def __hash__(self):
         return hash((self.x, self.y))
 
@@ -45,7 +62,7 @@ class Coordinate:
 
     def __floordiv__(self, other):
         if isinstance(other, int):
-            return Coordinate(self.x // other, self.y // other) 
+            return Coordinate(self.x // other, self.y // other)
         raise NotImplementedError(f"Division not defined for {type(other)}")
 
     def __repr__(self):

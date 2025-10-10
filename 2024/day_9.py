@@ -7,7 +7,7 @@ from itertools import permutations
 from typing import Literal
 
 from util.algs import search
-from util.coordinate import Coordinate
+from util.models import Coordinate
 
 
 def solve(part: Literal["a", "b"], input: str) -> int:
